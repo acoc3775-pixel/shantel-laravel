@@ -20,16 +20,15 @@ class Reservation extends Model
      * These are the columns we allow to be filled via create() or fill().
      */
     protected $fillable = [
-        'full_name',
-        'email',
-        'phone',
-        'reservation_date',
-        'reservation_time',
-        'party_size',
-        'purpose',
-        'status',
-        'notes',
-    ];
+    'user_id',
+    'full_name',
+    'email',
+    'reservation_date',
+    'reservation_time',
+    'party_size',
+    'purpose',
+    'status',
+];
 
     /**
      * Cast certain columns to native PHP types automatically.

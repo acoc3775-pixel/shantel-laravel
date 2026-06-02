@@ -7,7 +7,7 @@
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
     <div>
         <h1 class="fw-bold mb-1">Admin Dashboard</h1>
-        <p class="text-muted mb-0">Platform overview and reservation activity.</p>
+        <p class="text-muted mb-0">Platform overview, reservation status, and monthly activity.</p>
     </div>
 
     <a href="{{ secure_url(route('admin.users', [], false)) }}" class="btn btn-primary">
@@ -103,6 +103,39 @@
     </div>
 </div>
 
+{{-- Charts --}}
+<div class="row g-4 mb-4">
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-white border-0 p-4 pb-0">
+                <h5 class="fw-bold mb-0">
+                    <i class="bi bi-pie-chart-fill text-primary me-1"></i>
+                    Booking Status Distribution
+                </h5>
+                <p class="text-muted small mb-0">Pending, confirmed, and cancelled bookings.</p>
+            </div>
+            <div class="card-body p-4">
+                <canvas id="statusChart" height="230"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-white border-0 p-4 pb-0">
+                <h5 class="fw-bold mb-0">
+                    <i class="bi bi-graph-up-arrow text-primary me-1"></i>
+                    Monthly Reservations
+                </h5>
+                <p class="text-muted small mb-0">Reservations created over the last 6 months.</p>
+            </div>
+            <div class="card-body p-4">
+                <canvas id="monthlyChart" height="230"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="row g-4">
     <div class="col-lg-7">
         <div class="card border-0 shadow-sm rounded-4 h-100">
@@ -170,10 +203,18 @@
                         @foreach($recentUsers as $user)
                             <div class="list-group-item px-0 d-flex justify-content-between align-items-center gap-3">
                                 <div class="d-flex align-items-center gap-2">
-                                    <div class="rounded-circle d-flex align-items-center justify-content-center"
-                                         style="width:38px;height:38px;background:#eef3ff;color:#2563eb;font-weight:700;">
-                                        {{ strtoupper(substr($user->name, 0, 1)) }}
-                                    </div>
+                                    @if($user->avatar)
+                                        <img src="{{ secure_asset('uploads/avatars/' . $user->avatar) }}"
+                                             class="rounded-circle"
+                                             width="38"
+                                             height="38"
+                                             style="object-fit:cover;">
+                                    @else
+                                        <div class="rounded-circle d-flex align-items-center justify-content-center"
+                                             style="width:38px;height:38px;background:#eef3ff;color:#2563eb;font-weight:700;">
+                                            {{ strtoupper(substr($user->name, 0, 1)) }}
+                                        </div>
+                                    @endif
 
                                     <div>
                                         <div class="fw-semibold">{{ $user->name }}</div>
@@ -193,4 +234,66 @@
     </div>
 </div>
 
+@endsection
+
+@section('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
+<script>
+const statusCtx = document.getElementById('statusChart');
+const monthlyCtx = document.getElementById('monthlyChart');
+
+if (statusCtx) {
+    new Chart(statusCtx, {
+        type: 'doughnut',
+        data: {
+            labels: @json($statusChart['labels']),
+            datasets: [{
+                data: @json($statusChart['data']),
+                backgroundColor: ['#f97316', '#22c55e', '#ef4444'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+}
+
+if (monthlyCtx) {
+    new Chart(monthlyCtx, {
+        type: 'bar',
+        data: {
+            labels: @json($monthlyChart['labels']),
+            datasets: [{
+                label: 'Reservations',
+                data: @json($monthlyChart['data']),
+                backgroundColor: '#2563eb',
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+}
+</script>
 @endsection

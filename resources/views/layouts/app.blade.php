@@ -10,26 +10,23 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Mono&display=swap" rel="stylesheet">
 
-    {{-- Bootstrap CSS --}}
+    {{-- Bootstrap --}}
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    {{-- Bootstrap Icons --}}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     {{-- Main stylesheet --}}
-    <link rel="stylesheet" href="{{ secure_asset('css/app.css') }}?v=5">
+    <link rel="stylesheet" href="{{ secure_asset('css/app.css') }}?v=7">
 </head>
-<body>
+<body class="d-flex flex-column min-vh-100">
 
     {{-- Navbar --}}
     <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm mb-4">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="{{ auth()->check() ? route('reservations.index') : route('login') }}">
-                <i class="bi bi-clipboard-check me-2"></i>
-                ReserveList
+                <i class="bi bi-clipboard-check me-2"></i> ReserveList
             </a>
 
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu" aria-controls="navMenu" aria-expanded="false" aria-label="Toggle navigation">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
@@ -38,12 +35,7 @@
                     @auth
                         <li class="nav-item">
                             <a class="nav-link d-flex align-items-center" href="{{ route('reservations.index') }}">
-                                <i class="bi bi-list-check me-1"></i> All Reservations
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="btn btn-primary btn-sm ms-2" href="{{ route('reservations.create') }}">
-                                <i class="bi bi-plus-lg me-1"></i> New
+                                <i class="bi bi-list-check me-1"></i> Reservations
                             </a>
                         </li>
                         @if(auth()->user()->is_admin ?? false)
@@ -54,11 +46,18 @@
                             </li>
                         @endif
                         <li class="nav-item dropdown ms-3">
-                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="bi bi-person-circle me-1"></i> {{ auth()->user()->name }}
+                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                                @if(auth()->user()->avatar)
+                                    <img src="{{ asset('uploads/avatars/' . auth()->user()->avatar) }}" class="rounded-circle me-1" width="32" height="32" style="object-fit:cover;">
+                                @else
+                                    <i class="bi bi-person-circle me-1 fs-4"></i>
+                                @endif
+                                {{ auth()->user()->name }}
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                                <li><a class="dropdown-item" href="{{ route('profile.edit') }}"><i class="bi bi-gear me-1"></i> Profile</a></li>
+                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#profileModal">
+                                    <i class="bi bi-gear me-1"></i> Profile
+                                </a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <form method="POST" action="{{ route('logout') }}">
@@ -87,18 +86,26 @@
         </div>
     </nav>
 
-    {{-- Flash Messages --}}
-    <div class="container mb-4">
+    {{-- Toast Notifications --}}
+    <div class="position-fixed top-0 end-0 p-3" style="z-index:1080;">
         @if(session('success'))
-            <div class="alert alert-success d-flex align-items-center" role="alert">
-                <i class="bi bi-check-circle-fill me-2"></i>
-                {{ session('success') }}
+            <div class="toast align-items-center text-bg-success border-0 show" role="alert">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <i class="bi bi-check-circle-fill me-1"></i> {{ session('success') }}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
             </div>
         @endif
         @if(session('error'))
-            <div class="alert alert-danger d-flex align-items-center" role="alert">
-                <i class="bi bi-x-circle-fill me-2"></i>
-                {{ session('error') }}
+            <div class="toast align-items-center text-bg-danger border-0 show" role="alert">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <i class="bi bi-x-circle-fill me-1"></i> {{ session('error') }}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
             </div>
         @endif
     </div>
@@ -115,8 +122,59 @@
         </div>
     </footer>
 
+    {{-- Profile Modal --}}
+    @auth
+    <div class="modal fade" id="profileModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 rounded-4 shadow">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold">
+                        <i class="bi bi-person-circle text-primary me-1"></i> Edit Profile
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="POST" action="{{ route('profile.update') }}" enctype="multipart/form-data">
+                    @csrf
+                    @method('PUT')
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" name="name" class="form-control" value="{{ old('name', auth()->user()->name) }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" name="email" class="form-control" value="{{ old('email', auth()->user()->email) }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Profile Image</label>
+                            <input type="file" name="avatar" class="form-control">
+                            @if(auth()->user()->avatar)
+                                <img src="{{ asset('uploads/avatars/' . auth()->user()->avatar) }}" class="rounded-circle mt-2" width="80" height="80">
+                            @endif
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 pt-0">
+                        <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check2-circle me-1"></i> Update Profile
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    @endauth
+
     {{-- Bootstrap JS --}}
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.querySelectorAll('.toast').forEach(toastEl => {
+            setTimeout(() => {
+                bootstrap.Toast.getOrCreateInstance(toastEl).hide();
+            }, 3500);
+        });
+    </script>
 
+    @yield('scripts')
 </body>
 </html>

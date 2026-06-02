@@ -17,10 +17,40 @@ class AdminController extends Controller
             'cancelled' => Reservation::where('status', 'cancelled')->count(),
         ];
 
+        $statusChart = [
+            'labels' => ['Pending', 'Confirmed', 'Cancelled'],
+            'data' => [
+                $stats['pending'],
+                $stats['confirmed'],
+                $stats['cancelled'],
+            ],
+        ];
+
+        $monthlyChart = [
+            'labels' => [],
+            'data' => [],
+        ];
+
+        for ($i = 5; $i >= 0; $i--) {
+            $date = now()->subMonths($i);
+
+            $monthlyChart['labels'][] = $date->format('M');
+
+            $monthlyChart['data'][] = Reservation::whereYear('created_at', $date->year)
+                ->whereMonth('created_at', $date->month)
+                ->count();
+        }
+
         $recentReservations = Reservation::latest()->take(5)->get();
         $recentUsers = User::latest()->take(5)->get();
 
-        return view('admin.dashboard', compact('stats', 'recentReservations', 'recentUsers'));
+        return view('admin.dashboard', compact(
+            'stats',
+            'statusChart',
+            'monthlyChart',
+            'recentReservations',
+            'recentUsers'
+        ));
     }
 
     public function users()

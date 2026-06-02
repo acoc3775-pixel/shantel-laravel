@@ -1,19 +1,23 @@
 @extends('layouts.app')
 
-@section('title', 'Reservation List')
+@section('title', $isAdmin ? 'All Reservations' : 'My Reservations')
 
 @section('content')
 
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
     <div>
-        <h1 class="fw-bold mb-1">Reservations</h1>
-        <p class="text-muted mb-0">Manage all your bookings in one place.</p>
+        <h1 class="fw-bold mb-1">{{ $isAdmin ? 'All Reservations' : 'My Reservations' }}</h1>
+        <p class="text-muted mb-0">
+            {{ $isAdmin ? 'Manage all user bookings and update their status.' : 'View your booking history and current reservation status.' }}
+        </p>
     </div>
 
-    <a href="{{ secure_url(route('reservations.create', [], false)) }}" class="btn btn-primary">
-        <i class="bi bi-plus-lg me-1"></i>
-        Add Reservation
-    </a>
+    @unless($isAdmin)
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addReservationModal">
+            <i class="bi bi-plus-lg me-1"></i>
+            Add Booking
+        </button>
+    @endunless
 </div>
 
 <div class="row g-3 mb-4">
@@ -86,13 +90,11 @@
                     <span class="input-group-text bg-light">
                         <i class="bi bi-search"></i>
                     </span>
-                    <input
-                        type="text"
-                        name="search"
-                        value="{{ request('search') }}"
-                        placeholder="Search by name or email..."
-                        class="form-control"
-                    >
+                    <input type="text"
+                           name="search"
+                           value="{{ request('search') }}"
+                           placeholder="Search by name, email, or purpose..."
+                           class="form-control">
                 </div>
             </div>
 
@@ -130,12 +132,15 @@
             <i class="bi bi-calendar-x fs-1 d-block mb-3"></i>
             <h4 class="fw-bold">No reservations found</h4>
             <p class="mb-3">
-                Try a different filter, or add a new reservation.
+                {{ $isAdmin ? 'No booking records yet.' : 'You have not submitted any booking yet.' }}
             </p>
-            <a href="{{ secure_url(route('reservations.create', [], false)) }}" class="btn btn-primary">
-                <i class="bi bi-plus-lg me-1"></i>
-                Add Reservation
-            </a>
+
+            @unless($isAdmin)
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addReservationModal">
+                    <i class="bi bi-plus-lg me-1"></i>
+                    Add Booking
+                </button>
+            @endunless
         </div>
     </div>
 @else
@@ -145,7 +150,7 @@
                 <thead class="table-light">
                     <tr>
                         <th style="width:70px">#</th>
-                        <th>Name</th>
+                        <th>Guest</th>
                         <th>Date & Time</th>
                         <th>Party</th>
                         <th>Purpose</th>
@@ -172,32 +177,61 @@
                             </td>
 
                             <td>{{ $reservation->party_size }} pax</td>
-
                             <td>{{ $reservation->purpose ?? '—' }}</td>
 
                             <td>
-                                <span class="badge rounded-pill
-                                    @if($reservation->status === 'confirmed') text-bg-success
-                                    @elseif($reservation->status === 'cancelled') text-bg-danger
-                                    @else text-bg-warning
-                                    @endif">
-                                    {{ ucfirst($reservation->status) }}
-                                </span>
+                                @if($isAdmin)
+                                    <form method="POST"
+                                          action="{{ secure_url(route('reservations.updateStatus', $reservation, false)) }}"
+                                          class="d-flex gap-2 align-items-center">
+                                        @csrf
+                                        @method('PATCH')
+
+                                        <select name="status" class="form-select form-select-sm" style="min-width:130px">
+                                            <option value="pending" @selected($reservation->status === 'pending')>Pending</option>
+                                            <option value="confirmed" @selected($reservation->status === 'confirmed')>Confirmed</option>
+                                            <option value="cancelled" @selected($reservation->status === 'cancelled')>Cancelled</option>
+                                        </select>
+
+                                        <button type="submit" class="btn btn-sm btn-light border" title="Update status">
+                                            <i class="bi bi-check2"></i>
+                                        </button>
+                                    </form>
+                                @else
+                                    <span class="badge rounded-pill
+                                        @if($reservation->status === 'confirmed') text-bg-success
+                                        @elseif($reservation->status === 'cancelled') text-bg-danger
+                                        @else text-bg-warning
+                                        @endif">
+                                        <i class="bi
+                                            @if($reservation->status === 'confirmed') bi-check-circle
+                                            @elseif($reservation->status === 'cancelled') bi-x-circle
+                                            @else bi-hourglass-split
+                                            @endif me-1"></i>
+                                        {{ ucfirst($reservation->status) }}
+                                    </span>
+                                @endif
                             </td>
 
                             <td class="text-end">
                                 <div class="btn-group btn-group-sm">
-                                    <a href="{{ secure_url(route('reservations.show', $reservation, false)) }}"
-                                       class="btn btn-light border"
-                                       title="View">
+                                    <button type="button"
+                                            class="btn btn-light border"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#viewReservationModal{{ $reservation->id }}"
+                                            title="View">
                                         <i class="bi bi-eye"></i>
-                                    </a>
+                                    </button>
 
-                                    <a href="{{ secure_url(route('reservations.edit', $reservation, false)) }}"
-                                       class="btn btn-light border"
-                                       title="Edit">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
+                                    @unless($isAdmin)
+                                        <button type="button"
+                                                class="btn btn-light border"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#editReservationModal{{ $reservation->id }}"
+                                                title="Edit">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                    @endunless
 
                                     <button type="button"
                                             class="btn btn-light border text-danger"
@@ -207,31 +241,89 @@
                                         <i class="bi bi-trash3"></i>
                                     </button>
                                 </div>
+                            </td>
+                        </tr>
 
-                                <div class="modal fade" id="deleteReservationModal{{ $reservation->id }}" tabindex="-1" aria-labelledby="deleteReservationModalLabel{{ $reservation->id }}" aria-hidden="true">
-                                    <div class="modal-dialog modal-dialog-centered">
-                                        <div class="modal-content border-0 rounded-4 shadow">
-                                            <div class="modal-header border-0 pb-0">
-                                                <div>
-                                                    <h5 class="modal-title fw-bold" id="deleteReservationModalLabel{{ $reservation->id }}">
-                                                        <i class="bi bi-trash3 text-danger me-1"></i>
-                                                        Delete Reservation?
-                                                    </h5>
-                                                    <p class="text-muted small mb-0">This action cannot be undone.</p>
-                                                </div>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        {{-- View Modal --}}
+                        <div class="modal fade" id="viewReservationModal{{ $reservation->id }}" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content border-0 rounded-4 shadow">
+                                    <div class="modal-header border-0 pb-0">
+                                        <div>
+                                            <h5 class="modal-title fw-bold">
+                                                <i class="bi bi-eye text-primary me-1"></i>
+                                                Reservation Details
+                                            </h5>
+                                            <p class="text-muted small mb-0">Booking information and status.</p>
+                                        </div>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+
+                                    <div class="modal-body">
+                                        <div class="rounded-4 p-3 bg-light mb-3">
+                                            <div class="fw-bold">{{ $reservation->full_name }}</div>
+                                            <div class="text-muted small">{{ $reservation->email }}</div>
+                                        </div>
+
+                                        <div class="row g-3">
+                                            <div class="col-6">
+                                                <div class="small text-muted">Date</div>
+                                                <div class="fw-semibold">{{ $reservation->reservation_date->format('M d, Y') }}</div>
                                             </div>
 
-                                            <div class="modal-body text-start">
-                                                <div class="rounded-4 p-3 bg-light">
-                                                    <div class="fw-bold">{{ $reservation->full_name }}</div>
-                                                    <div class="text-muted small">{{ $reservation->email }}</div>
-                                                    <div class="text-muted small">
-                                                        {{ $reservation->reservation_date->format('M d, Y') }}
-                                                        at
-                                                        {{ \Carbon\Carbon::parse($reservation->reservation_time)->format('g:i A') }}
-                                                    </div>
-                                                </div>
+                                            <div class="col-6">
+                                                <div class="small text-muted">Time</div>
+                                                <div class="fw-semibold">{{ \Carbon\Carbon::parse($reservation->reservation_time)->format('g:i A') }}</div>
+                                            </div>
+
+                                            <div class="col-6">
+                                                <div class="small text-muted">Party</div>
+                                                <div class="fw-semibold">{{ $reservation->party_size }} pax</div>
+                                            </div>
+
+                                            <div class="col-6">
+                                                <div class="small text-muted">Status</div>
+                                                <div class="fw-semibold">{{ ucfirst($reservation->status) }}</div>
+                                            </div>
+
+                                            <div class="col-12">
+                                                <div class="small text-muted">Purpose</div>
+                                                <div class="fw-semibold">{{ $reservation->purpose ?? '—' }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="modal-footer border-0 pt-0">
+                                        <button type="button" class="btn btn-light border" data-bs-dismiss="modal">
+                                            Close
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Edit Modal --}}
+                        @unless($isAdmin)
+                            <div class="modal fade" id="editReservationModal{{ $reservation->id }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-lg modal-dialog-centered">
+                                    <div class="modal-content border-0 rounded-4 shadow">
+                                        <div class="modal-header border-0 pb-0">
+                                            <div>
+                                                <h5 class="modal-title fw-bold">
+                                                    <i class="bi bi-pencil-square text-primary me-1"></i>
+                                                    Edit Booking
+                                                </h5>
+                                                <p class="text-muted small mb-0">You cannot change the status. Admin will update it.</p>
+                                            </div>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+
+                                        <form method="POST" action="{{ secure_url(route('reservations.update', $reservation, false)) }}">
+                                            @csrf
+                                            @method('PUT')
+
+                                            <div class="modal-body">
+                                                @include('reservations.partials.form-fields', ['reservation' => $reservation])
                                             </div>
 
                                             <div class="modal-footer border-0 pt-0">
@@ -239,21 +331,57 @@
                                                     Cancel
                                                 </button>
 
-                                                <form method="POST" action="{{ secure_url(route('reservations.destroy', $reservation, false)) }}">
-                                                    @csrf
-                                                    @method('DELETE')
-
-                                                    <button type="submit" class="btn btn-danger">
-                                                        <i class="bi bi-trash3 me-1"></i>
-                                                        Delete
-                                                    </button>
-                                                </form>
+                                                <button type="submit" class="btn btn-primary">
+                                                    <i class="bi bi-check2-circle me-1"></i>
+                                                    Save Changes
+                                                </button>
                                             </div>
-                                        </div>
+                                        </form>
                                     </div>
                                 </div>
-                            </td>
-                        </tr>
+                            </div>
+                        @endunless
+
+                        {{-- Delete Modal --}}
+                        <div class="modal fade" id="deleteReservationModal{{ $reservation->id }}" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content border-0 rounded-4 shadow">
+                                    <div class="modal-header border-0 pb-0">
+                                        <div>
+                                            <h5 class="modal-title fw-bold">
+                                                <i class="bi bi-trash3 text-danger me-1"></i>
+                                                Delete Reservation?
+                                            </h5>
+                                            <p class="text-muted small mb-0">This action cannot be undone.</p>
+                                        </div>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+
+                                    <div class="modal-body">
+                                        <div class="rounded-4 p-3 bg-light">
+                                            <div class="fw-bold">{{ $reservation->full_name }}</div>
+                                            <div class="text-muted small">{{ $reservation->email }}</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="modal-footer border-0 pt-0">
+                                        <button type="button" class="btn btn-light border" data-bs-dismiss="modal">
+                                            Cancel
+                                        </button>
+
+                                        <form method="POST" action="{{ secure_url(route('reservations.destroy', $reservation, false)) }}">
+                                            @csrf
+                                            @method('DELETE')
+
+                                            <button type="submit" class="btn btn-danger">
+                                                <i class="bi bi-trash3 me-1"></i>
+                                                Delete
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     @endforeach
                 </tbody>
             </table>
@@ -266,5 +394,44 @@
         @endif
     </div>
 @endif
+
+{{-- Add Modal --}}
+@unless($isAdmin)
+    <div class="modal fade" id="addReservationModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 rounded-4 shadow">
+                <div class="modal-header border-0 pb-0">
+                    <div>
+                        <h5 class="modal-title fw-bold">
+                            <i class="bi bi-calendar-plus text-primary me-1"></i>
+                            Add Booking
+                        </h5>
+                        <p class="text-muted small mb-0">New bookings are automatically set to pending.</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <form method="POST" action="{{ secure_url(route('reservations.store', [], false)) }}">
+                    @csrf
+
+                    <div class="modal-body">
+                        @include('reservations.partials.form-fields', ['reservation' => null])
+                    </div>
+
+                    <div class="modal-footer border-0 pt-0">
+                        <button type="button" class="btn btn-light border" data-bs-dismiss="modal">
+                            Cancel
+                        </button>
+
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-plus-lg me-1"></i>
+                            Submit Booking
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+@endunless
 
 @endsection
