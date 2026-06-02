@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Reservation;
 use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules\Password;
 
 class AdminController extends Controller
 {
@@ -58,5 +61,31 @@ class AdminController extends Controller
         $users = User::latest()->paginate(10);
 
         return view('admin.users', compact('users'));
+    }
+
+    public function updateUser(Request $request, User $user)
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email,' . $user->id],
+            'password' => ['nullable', 'confirmed', Password::min(8)],
+            'is_admin' => ['nullable', 'boolean'],
+        ]);
+
+        $updateData = [
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'is_admin' => $request->boolean('is_admin'),
+        ];
+
+        if (! empty($data['password'])) {
+            $updateData['password'] = Hash::make($data['password']);
+        }
+
+        $user->update($updateData);
+
+        return redirect()
+            ->route('admin.users')
+            ->with('success', 'User account updated successfully.');
     }
 }

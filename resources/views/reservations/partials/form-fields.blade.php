@@ -94,7 +94,7 @@
     <div class="col-12">
         <div class="alert alert-light border mb-0">
             <i class="bi bi-info-circle text-primary me-1"></i>
-            Booking status will be set to <strong>Pending</strong> and can only be updated by an admin.
+            Your booking will be marked as <strong>Pending</strong>. Please wait for admin approval or status update.
         </div>
     </div>
 </div>

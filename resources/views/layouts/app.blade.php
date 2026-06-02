@@ -22,7 +22,7 @@
     {{-- Navbar --}}
     <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm mb-4">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="{{ auth()->check() ? route('reservations.index') : route('login') }}">
+            <a class="navbar-brand d-flex align-items-center" href="{{ auth()->check() ? secure_url(route('reservations.index', [], false)) : secure_url(route('login', [], false)) }}">
                 <i class="bi bi-clipboard-check me-2"></i> ReserveList
             </a>
 
@@ -34,13 +34,13 @@
                 <ul class="navbar-nav ms-auto align-items-center">
                     @auth
                         <li class="nav-item">
-                            <a class="nav-link d-flex align-items-center" href="{{ route('reservations.index') }}">
+                            <a class="nav-link d-flex align-items-center" href="{{ secure_url(route('reservations.index', [], false)) }}">
                                 <i class="bi bi-list-check me-1"></i> Reservations
                             </a>
                         </li>
                         @if(auth()->user()->is_admin ?? false)
                             <li class="nav-item">
-                                <a class="nav-link d-flex align-items-center ms-2" href="{{ route('admin.dashboard') }}">
+                                <a class="nav-link d-flex align-items-center ms-2" href="{{ secure_url(route('admin.dashboard', [], false)) }}">
                                     <i class="bi bi-speedometer2 me-1"></i> Admin
                                 </a>
                             </li>
@@ -48,19 +48,21 @@
                         <li class="nav-item dropdown ms-3">
                             <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
                                 @if(auth()->user()->avatar)
-                                    <img src="{{ asset('uploads/avatars/' . auth()->user()->avatar) }}" class="rounded-circle me-1" width="32" height="32" style="object-fit:cover;">
+                                    <img src="{{ secure_asset('uploads/avatars/' . auth()->user()->avatar) }}" class="rounded-circle me-1" width="32" height="32" style="object-fit:cover;">
                                 @else
                                     <i class="bi bi-person-circle me-1 fs-4"></i>
                                 @endif
                                 {{ auth()->user()->name }}
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#profileModal">
-                                    <i class="bi bi-gear me-1"></i> Profile
-                                </a></li>
+                                <li>
+                                    <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#profileModal">
+                                        <i class="bi bi-gear me-1"></i> Profile
+                                    </a>
+                                </li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
-                                    <form method="POST" action="{{ route('logout') }}">
+                                    <form method="POST" action="{{ secure_url(route('logout', [], false)) }}">
                                         @csrf
                                         <button type="submit" class="dropdown-item d-flex align-items-center">
                                             <i class="bi bi-box-arrow-right me-1"></i> Logout
@@ -71,12 +73,12 @@
                         </li>
                     @else
                         <li class="nav-item">
-                            <a class="nav-link d-flex align-items-center" href="{{ route('login') }}">
+                            <a class="nav-link d-flex align-items-center" href="{{ secure_url(route('login', [], false)) }}">
                                 <i class="bi bi-box-arrow-in-right me-1"></i> Login
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="btn btn-primary btn-sm ms-2" href="{{ route('register') }}">
+                            <a class="btn btn-primary btn-sm ms-2" href="{{ secure_url(route('register', [], false)) }}">
                                 <i class="bi bi-person-plus me-1"></i> Register
                             </a>
                         </li>
@@ -133,7 +135,7 @@
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <form method="POST" action="{{ route('profile.update') }}" enctype="multipart/form-data">
+                <form method="POST" action="{{ secure_url(route('profile.update', [], false)) }}" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
                     <div class="modal-body">
@@ -149,7 +151,7 @@
                             <label class="form-label">Profile Image</label>
                             <input type="file" name="avatar" class="form-control">
                             @if(auth()->user()->avatar)
-                                <img src="{{ asset('uploads/avatars/' . auth()->user()->avatar) }}" class="rounded-circle mt-2" width="80" height="80">
+                                <img src="{{ secure_asset('uploads/avatars/' . auth()->user()->avatar) }}" class="rounded-circle mt-2" width="80" height="80">
                             @endif
                         </div>
                     </div>

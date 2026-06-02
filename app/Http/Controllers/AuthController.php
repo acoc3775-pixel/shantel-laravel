@@ -25,8 +25,8 @@ class AuthController extends Controller
             $request->session()->regenerate();
 
             return auth()->user()->is_admin
-                ? redirect()->route('admin.dashboard')
-                : redirect()->route('reservations.index');
+                ? redirect()->to(secure_url(route('admin.dashboard', [], false)))
+                : redirect()->to(secure_url(route('reservations.index', [], false)));
         }
 
         return back()->withErrors([
@@ -51,7 +51,7 @@ class AuthController extends Controller
 
         Auth::login($user);
 
-        return redirect()->route('reservations.index');
+        return redirect()->to(secure_url(route('reservations.index', [], false)));
     }
 
     public function logout(Request $request)
@@ -61,6 +61,6 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('login');
+        return redirect()->to(secure_url(route('login', [], false)));
     }
 }
