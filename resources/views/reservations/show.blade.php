@@ -1,92 +1,146 @@
 @extends('layouts.app')
 
-@section('title', 'Reservation #' . $reservation->id)
+@section('title', 'Reservation Details')
 
 @section('content')
 
-<div class="page-header">
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
     <div>
-        <h1 class="page-title">Reservation #{{ $reservation->id }}</h1>
-        <p class="page-subtitle">Created {{ $reservation->created_at->diffForHumans() }}</p>
+        <h1 class="fw-bold mb-1">Reservation Details</h1>
+        <p class="text-muted mb-0">View guest and booking information.</p>
     </div>
-    <div style="display:flex;gap:.5rem;">
-        <a href="{{ route('reservations.edit', $reservation) }}" class="btn btn-secondary">Edit</a>
-        <a href="{{ route('reservations.index') }}" class="btn btn-ghost">&larr; Back</a>
+
+    <div class="d-flex gap-2">
+        <a href="{{ secure_url(route('reservations.edit', $reservation, false)) }}" class="btn btn-primary">
+            <i class="bi bi-pencil me-1"></i>
+            Edit
+        </a>
+
+        <a href="{{ secure_url(route('reservations.index', [], false)) }}" class="btn btn-light border shadow-sm">
+            <i class="bi bi-arrow-left me-1"></i>
+            Back
+        </a>
     </div>
 </div>
 
-<div class="card detail-card">
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body text-center p-4">
+                <div class="mx-auto mb-3 rounded-circle d-flex align-items-center justify-content-center"
+                     style="width:96px;height:96px;background:#eef3ff;color:#2563eb;font-size:2.5rem;font-weight:700;">
+                    {{ strtoupper(substr($reservation->full_name, 0, 1)) }}
+                </div>
 
-    <div class="detail-badge-row">
-        <span class="badge {{ $reservation->status_badge }} badge-lg">
-            {{ ucfirst($reservation->status) }}
-        </span>
-    </div>
+                <h4 class="fw-bold mb-1">{{ $reservation->full_name }}</h4>
+                <p class="text-muted mb-3">{{ $reservation->email }}</p>
 
-    <div class="detail-grid">
-        <div class="detail-item">
-            <span class="detail-label">👤 Full Name</span>
-            <span class="detail-value">{{ $reservation->full_name }}</span>
-        </div>
-        <div class="detail-item">
-            <span class="detail-label">📧 Email</span>
-            <span class="detail-value">{{ $reservation->email }}</span>
-        </div>
-        <div class="detail-item">
-            <span class="detail-label">📱 Phone</span>
-            <span class="detail-value">{{ $reservation->phone ?? 'Not provided' }}</span>
-        </div>
-        <div class="detail-item">
-            <span class="detail-label">👥 Party Size</span>
-            <span class="detail-value">{{ $reservation->party_size }} person/s</span>
-        </div>
-        <div class="detail-item">
-            <span class="detail-label">📅 Date</span>
-            <span class="detail-value">{{ $reservation->reservation_date->format('F d, Y') }}</span>
-        </div>
-        <div class="detail-item">
-            <span class="detail-label">🕐 Time</span>
-            <span class="detail-value">{{ \Carbon\Carbon::parse($reservation->reservation_time)->format('g:i A') }}</span>
-        </div>
-        <div class="detail-item">
-            <span class="detail-label">🎉 Purpose</span>
-            <span class="detail-value">{{ $reservation->purpose ?? 'Not specified' }}</span>
-        </div>
-        <div class="detail-item detail-item-full">
-            <span class="detail-label">📝 Notes</span>
-            <span class="detail-value">{{ $reservation->notes ?? 'None' }}</span>
+                <span class="badge rounded-pill px-3 py-2
+                    @if($reservation->status === 'confirmed') text-bg-success
+                    @elseif($reservation->status === 'cancelled') text-bg-danger
+                    @else text-bg-warning
+                    @endif">
+                    {{ ucfirst($reservation->status) }}
+                </span>
+            </div>
         </div>
     </div>
 
-    {{-- Quick Status Change --}}
-    <div class="detail-actions">
-        <h3 class="section-subtitle">Change Status</h3>
-        <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
-            @foreach(['pending','confirmed','cancelled'] as $status)
-                @if($status !== $reservation->status)
-                    <form method="POST" action="{{ route('reservations.updateStatus', $reservation) }}">
-                        @csrf
-                        @method('PATCH')
-                        <input type="hidden" name="status" value="{{ $status }}">
-                        <button type="submit" class="btn btn-secondary btn-sm">
-                            Mark as {{ ucfirst($status) }}
-                        </button>
-                    </form>
-                @endif
-            @endforeach
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-header bg-white border-0 p-4 pb-0">
+                <h4 class="fw-bold mb-1">
+                    <i class="bi bi-info-circle text-primary me-1"></i>
+                    Booking Information
+                </h4>
+                <p class="text-muted mb-0">Complete reservation record.</p>
+            </div>
+
+            <div class="card-body p-4">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="p-3 rounded-4 bg-light">
+                            <div class="text-muted small fw-semibold text-uppercase">Date</div>
+                            <div class="fw-bold">{{ $reservation->reservation_date->format('M d, Y') }}</div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="p-3 rounded-4 bg-light">
+                            <div class="text-muted small fw-semibold text-uppercase">Time</div>
+                            <div class="fw-bold">{{ \Carbon\Carbon::parse($reservation->reservation_time)->format('g:i A') }}</div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="p-3 rounded-4 bg-light">
+                            <div class="text-muted small fw-semibold text-uppercase">Party Size</div>
+                            <div class="fw-bold">{{ $reservation->party_size }} pax</div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="p-3 rounded-4 bg-light">
+                            <div class="text-muted small fw-semibold text-uppercase">Purpose</div>
+                            <div class="fw-bold">{{ $reservation->purpose ?? '—' }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="my-4">
+
+                <div class="d-flex flex-wrap justify-content-end gap-2">
+                    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteReservationModal">
+                        <i class="bi bi-trash3 me-1"></i>
+                        Delete
+                    </button>
+
+                    <a href="{{ secure_url(route('reservations.edit', $reservation, false)) }}" class="btn btn-primary">
+                        <i class="bi bi-pencil me-1"></i>
+                        Edit Reservation
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
+</div>
 
-    {{-- Delete --}}
-    <div class="detail-delete">
-        <form method="POST" action="{{ route('reservations.destroy', $reservation) }}"
-              onsubmit="return confirm('Are you sure you want to delete this reservation? This cannot be undone.')">
-            @csrf
-            @method('DELETE')
-            <button type="submit" class="btn btn-danger btn-sm">🗑 Delete Reservation</button>
-        </form>
+<div class="modal fade" id="deleteReservationModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow">
+            <div class="modal-header border-0 pb-0">
+                <div>
+                    <h5 class="modal-title fw-bold">
+                        <i class="bi bi-trash3 text-danger me-1"></i>
+                        Delete Reservation?
+                    </h5>
+                    <p class="text-muted small mb-0">This action cannot be undone.</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="rounded-4 p-3 bg-light">
+                    <div class="fw-bold">{{ $reservation->full_name }}</div>
+                    <div class="text-muted small">{{ $reservation->email }}</div>
+                </div>
+            </div>
+
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Cancel</button>
+
+                <form method="POST" action="{{ secure_url(route('reservations.destroy', $reservation, false)) }}">
+                    @csrf
+                    @method('DELETE')
+
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash3 me-1"></i>
+                        Delete
+                    </button>
+                </form>
+            </div>
+        </div>
     </div>
-
 </div>
 
 @endsection

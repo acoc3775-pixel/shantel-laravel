@@ -4,116 +4,156 @@
 
 @section('content')
 
-<div class="page-header">
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
     <div>
-        <h1 class="page-title">Edit Reservation #{{ $reservation->id }}</h1>
-        <p class="page-subtitle">Update the booking details below.</p>
+        <h1 class="fw-bold mb-1">Edit Reservation</h1>
+        <p class="text-muted mb-0">Update booking details for {{ $reservation->full_name }}.</p>
     </div>
-    <a href="{{ route('reservations.index') }}" class="btn btn-ghost">&larr; Back to List</a>
+
+    <a href="{{ secure_url(route('reservations.index', [], false)) }}" class="btn btn-light border shadow-sm">
+        <i class="bi bi-arrow-left me-1"></i>
+        Back
+    </a>
 </div>
 
 @if($errors->any())
-    <div class="alert alert-error">
-        <strong>Please fix the following errors:</strong>
-        <ul class="error-list">
-            @foreach($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
+    <div class="alert alert-danger border-0 shadow-sm rounded-4">
+        <div class="d-flex gap-2">
+            <i class="bi bi-x-circle-fill"></i>
+            <div>
+                <strong>Please fix the following:</strong>
+                <ul class="mb-0 mt-1">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        </div>
     </div>
 @endif
 
-<div class="card">
-    <form method="POST" action="{{ route('reservations.update', $reservation) }}" class="res-form">
-        @csrf
-        @method('PUT')
-
-        <div class="form-grid">
-
-            <div class="form-group">
-                <label for="full_name" class="form-label">Full Name <span class="required">*</span></label>
-                <input type="text" id="full_name" name="full_name"
-                    value="{{ old('full_name', $reservation->full_name) }}"
-                    class="input-field @error('full_name') input-error @enderror" required>
-                @error('full_name') <span class="error-msg">{{ $message }}</span> @enderror
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <div class="card-header bg-white border-0 p-4 pb-0">
+        <div class="d-flex align-items-center gap-3">
+            <div class="rounded-3 d-flex align-items-center justify-content-center"
+                 style="width:48px;height:48px;background:#eef3ff;color:#2563eb;">
+                <i class="bi bi-pencil-square fs-4"></i>
             </div>
-
-            <div class="form-group">
-                <label for="email" class="form-label">Email Address <span class="required">*</span></label>
-                <input type="email" id="email" name="email"
-                    value="{{ old('email', $reservation->email) }}"
-                    class="input-field @error('email') input-error @enderror" required>
-                @error('email') <span class="error-msg">{{ $message }}</span> @enderror
+            <div>
+                <h4 class="fw-bold mb-1">Reservation Details</h4>
+                <p class="text-muted mb-0">Edit guest and booking information.</p>
             </div>
-
-            <div class="form-group">
-                <label for="phone" class="form-label">Phone Number</label>
-                <input type="text" id="phone" name="phone"
-                    value="{{ old('phone', $reservation->phone) }}"
-                    class="input-field @error('phone') input-error @enderror">
-                @error('phone') <span class="error-msg">{{ $message }}</span> @enderror
-            </div>
-
-            <div class="form-group">
-                <label for="party_size" class="form-label">Party Size <span class="required">*</span></label>
-                <input type="number" id="party_size" name="party_size"
-                    value="{{ old('party_size', $reservation->party_size) }}"
-                    class="input-field @error('party_size') input-error @enderror"
-                    min="1" max="100" required>
-                @error('party_size') <span class="error-msg">{{ $message }}</span> @enderror
-            </div>
-
-            <div class="form-group">
-                <label for="reservation_date" class="form-label">Date <span class="required">*</span></label>
-                <input type="date" id="reservation_date" name="reservation_date"
-                    value="{{ old('reservation_date', $reservation->reservation_date->format('Y-m-d')) }}"
-                    class="input-field @error('reservation_date') input-error @enderror" required>
-                @error('reservation_date') <span class="error-msg">{{ $message }}</span> @enderror
-            </div>
-
-            <div class="form-group">
-                <label for="reservation_time" class="form-label">Time <span class="required">*</span></label>
-                <input type="time" id="reservation_time" name="reservation_time"
-                    value="{{ old('reservation_time', $reservation->reservation_time) }}"
-                    class="input-field @error('reservation_time') input-error @enderror" required>
-                @error('reservation_time') <span class="error-msg">{{ $message }}</span> @enderror
-            </div>
-
-            {{-- Status (only on Edit) --}}
-            <div class="form-group">
-                <label for="status" class="form-label">Status <span class="required">*</span></label>
-                <select id="status" name="status" class="input-field select-field @error('status') input-error @enderror">
-                    <option value="pending"   @selected(old('status', $reservation->status) === 'pending')>Pending</option>
-                    <option value="confirmed" @selected(old('status', $reservation->status) === 'confirmed')>Confirmed</option>
-                    <option value="cancelled" @selected(old('status', $reservation->status) === 'cancelled')>Cancelled</option>
-                </select>
-                @error('status') <span class="error-msg">{{ $message }}</span> @enderror
-            </div>
-
-            <div class="form-group">
-                <label for="purpose" class="form-label">Purpose / Event</label>
-                <input type="text" id="purpose" name="purpose"
-                    value="{{ old('purpose', $reservation->purpose) }}"
-                    class="input-field @error('purpose') input-error @enderror">
-                @error('purpose') <span class="error-msg">{{ $message }}</span> @enderror
-            </div>
-
-            <div class="form-group form-full">
-                <label for="notes" class="form-label">Additional Notes</label>
-                <textarea id="notes" name="notes" rows="3"
-                    class="input-field textarea-field @error('notes') input-error @enderror"
-                >{{ old('notes', $reservation->notes) }}</textarea>
-                @error('notes') <span class="error-msg">{{ $message }}</span> @enderror
-            </div>
-
         </div>
+    </div>
 
-        <div class="form-actions">
-            <button type="submit" class="btn btn-primary">Update Reservation</button>
-            <a href="{{ route('reservations.index') }}" class="btn btn-ghost">Cancel</a>
+    <div class="card-body p-4">
+        <form id="updateReservationForm" method="POST" action="{{ secure_url(route('reservations.update', $reservation, false)) }}">
+            @csrf
+            @method('PUT')
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label for="full_name" class="form-label fw-semibold">Full Name</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class="bi bi-person"></i></span>
+                        <input type="text" id="full_name" name="full_name" class="form-control"
+                               value="{{ old('full_name', $reservation->full_name) }}" required>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label for="email" class="form-label fw-semibold">Email Address</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class="bi bi-envelope"></i></span>
+                        <input type="email" id="email" name="email" class="form-control"
+                               value="{{ old('email', $reservation->email) }}" required>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <label for="reservation_date" class="form-label fw-semibold">Date</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class="bi bi-calendar-event"></i></span>
+                        <input type="date" id="reservation_date" name="reservation_date" class="form-control"
+                               value="{{ old('reservation_date', $reservation->reservation_date->format('Y-m-d')) }}" required>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <label for="reservation_time" class="form-label fw-semibold">Time</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class="bi bi-clock"></i></span>
+                        <input type="time" id="reservation_time" name="reservation_time" class="form-control"
+                               value="{{ old('reservation_time', \Carbon\Carbon::parse($reservation->reservation_time)->format('H:i')) }}" required>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <label for="party_size" class="form-label fw-semibold">Party Size</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class="bi bi-people"></i></span>
+                        <input type="number" id="party_size" name="party_size" class="form-control"
+                               value="{{ old('party_size', $reservation->party_size) }}" min="1" required>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label for="status" class="form-label fw-semibold">Status</label>
+                    <select id="status" name="status" class="form-select" required>
+                        <option value="pending" @selected(old('status', $reservation->status) === 'pending')>Pending</option>
+                        <option value="confirmed" @selected(old('status', $reservation->status) === 'confirmed')>Confirmed</option>
+                        <option value="cancelled" @selected(old('status', $reservation->status) === 'cancelled')>Cancelled</option>
+                    </select>
+                </div>
+
+                <div class="col-md-6">
+                    <label for="purpose" class="form-label fw-semibold">Purpose</label>
+                    <input type="text" id="purpose" name="purpose" class="form-control"
+                           value="{{ old('purpose', $reservation->purpose) }}">
+                </div>
+            </div>
+
+            <div class="d-flex flex-wrap justify-content-end gap-2 mt-4">
+                <a href="{{ secure_url(route('reservations.index', [], false)) }}" class="btn btn-light border">
+                    Cancel
+                </a>
+
+                <button type="button" class="btn btn-primary px-4" data-bs-toggle="modal" data-bs-target="#confirmUpdateModal">
+                    <i class="bi bi-check2-circle me-1"></i>
+                    Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal fade" id="confirmUpdateModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow">
+            <div class="modal-header border-0 pb-0">
+                <div>
+                    <h5 class="modal-title fw-bold">
+                        <i class="bi bi-pencil-square text-primary me-1"></i>
+                        Save Changes?
+                    </h5>
+                    <p class="text-muted small mb-0">Please confirm before updating this reservation.</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <p class="text-muted mb-0">This will update the reservation details.</p>
+            </div>
+
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="updateReservationForm" class="btn btn-primary">
+                    <i class="bi bi-check2-circle me-1"></i>
+                    Confirm Save
+                </button>
+            </div>
         </div>
-
-    </form>
+    </div>
 </div>
 
 @endsection
