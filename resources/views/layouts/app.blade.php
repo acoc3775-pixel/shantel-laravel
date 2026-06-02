@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     {{-- Main stylesheet --}}
-    <link rel="stylesheet" href="{{ secure_asset('css/app.css') }}?v=7">
+    <link rel="stylesheet" href="{{ secure_asset('css/app.css') }}?v=8">
 </head>
 <body class="d-flex flex-column min-vh-100">
 
@@ -38,6 +38,7 @@
                                 <i class="bi bi-list-check me-1"></i> Reservations
                             </a>
                         </li>
+
                         @if(auth()->user()->is_admin ?? false)
                             <li class="nav-item">
                                 <a class="nav-link d-flex align-items-center ms-2" href="{{ secure_url(route('admin.dashboard', [], false)) }}">
@@ -45,22 +46,31 @@
                                 </a>
                             </li>
                         @endif
+
                         <li class="nav-item dropdown ms-3">
                             <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
                                 @if(auth()->user()->avatar)
-                                    <img src="{{ secure_asset('uploads/avatars/' . auth()->user()->avatar) }}" class="rounded-circle me-1" width="32" height="32" style="object-fit:cover;">
+                                    <img src="{{ secure_asset('uploads/avatars/' . auth()->user()->avatar) }}"
+                                         class="rounded-circle me-1"
+                                         width="32"
+                                         height="32"
+                                         style="object-fit:cover;">
                                 @else
                                     <i class="bi bi-person-circle me-1 fs-4"></i>
                                 @endif
+
                                 {{ auth()->user()->name }}
                             </a>
+
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                                 <li>
                                     <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#profileModal">
                                         <i class="bi bi-gear me-1"></i> Profile
                                     </a>
                                 </li>
+
                                 <li><hr class="dropdown-divider"></li>
+
                                 <li>
                                     <form method="POST" action="{{ secure_url(route('logout', [], false)) }}">
                                         @csrf
@@ -77,6 +87,7 @@
                                 <i class="bi bi-box-arrow-in-right me-1"></i> Login
                             </a>
                         </li>
+
                         <li class="nav-item">
                             <a class="btn btn-primary btn-sm ms-2" href="{{ secure_url(route('register', [], false)) }}">
                                 <i class="bi bi-person-plus me-1"></i> Register
@@ -100,6 +111,7 @@
                 </div>
             </div>
         @endif
+
         @if(session('error'))
             <div class="toast align-items-center text-bg-danger border-0 show" role="alert">
                 <div class="d-flex">
@@ -130,33 +142,108 @@
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content border-0 rounded-4 shadow">
                 <div class="modal-header border-0 pb-0">
-                    <h5 class="modal-title fw-bold">
-                        <i class="bi bi-person-circle text-primary me-1"></i> Edit Profile
-                    </h5>
+                    <div>
+                        <h5 class="modal-title fw-bold">
+                            <i class="bi bi-person-circle text-primary me-1"></i> Edit Profile
+                        </h5>
+                        <p class="text-muted small mb-0">
+                            Update your account information, profile image, or password.
+                        </p>
+                    </div>
+
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
+
                 <form method="POST" action="{{ secure_url(route('profile.update', [], false)) }}" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
+
                     <div class="modal-body">
-                        <div class="mb-3">
-                            <label class="form-label">Full Name</label>
-                            <input type="text" name="name" class="form-control" value="{{ old('name', auth()->user()->name) }}" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Email</label>
-                            <input type="email" name="email" class="form-control" value="{{ old('email', auth()->user()->email) }}" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Profile Image</label>
-                            <input type="file" name="avatar" class="form-control">
+                        <div class="text-center mb-4">
                             @if(auth()->user()->avatar)
-                                <img src="{{ secure_asset('uploads/avatars/' . auth()->user()->avatar) }}" class="rounded-circle mt-2" width="80" height="80">
+                                <img src="{{ secure_asset('uploads/avatars/' . auth()->user()->avatar) }}"
+                                     class="rounded-circle shadow-sm"
+                                     width="96"
+                                     height="96"
+                                     style="object-fit:cover;">
+                            @else
+                                <div class="mx-auto rounded-circle d-flex align-items-center justify-content-center"
+                                     style="width:96px;height:96px;background:#eef3ff;color:#2563eb;font-size:2.5rem;font-weight:700;">
+                                    {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                                </div>
                             @endif
                         </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Profile Image</label>
+                            <input type="file" name="avatar" class="form-control" accept="image/*">
+                            <div class="form-text">JPG, PNG, or WebP. Max 2MB.</div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Full Name</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light">
+                                        <i class="bi bi-person"></i>
+                                    </span>
+                                    <input type="text"
+                                           name="name"
+                                           class="form-control"
+                                           value="{{ old('name', auth()->user()->name) }}"
+                                           required>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Email</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light">
+                                        <i class="bi bi-envelope"></i>
+                                    </span>
+                                    <input type="email"
+                                           name="email"
+                                           class="form-control"
+                                           value="{{ old('email', auth()->user()->email) }}"
+                                           required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <h6 class="fw-bold">
+                            <i class="bi bi-lock text-primary me-1"></i>
+                            Change Password
+                        </h6>
+                        <p class="text-muted small">
+                            Leave blank if you do not want to change your password.
+                        </p>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">New Password</label>
+                                <input type="password"
+                                       name="password"
+                                       class="form-control"
+                                       placeholder="Minimum 8 characters">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Confirm Password</label>
+                                <input type="password"
+                                       name="password_confirmation"
+                                       class="form-control"
+                                       placeholder="Repeat password">
+                            </div>
+                        </div>
                     </div>
+
                     <div class="modal-footer border-0 pt-0">
-                        <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-light border" data-bs-dismiss="modal">
+                            Cancel
+                        </button>
+
                         <button type="submit" class="btn btn-primary">
                             <i class="bi bi-check2-circle me-1"></i> Update Profile
                         </button>
@@ -169,6 +256,7 @@
 
     {{-- Bootstrap JS --}}
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
     <script>
         document.querySelectorAll('.toast').forEach(toastEl => {
             setTimeout(() => {

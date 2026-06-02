@@ -41,7 +41,7 @@
             </div>
             <div>
                 <h5 class="fw-bold mb-0">All Users</h5>
-                <p class="text-muted small mb-0">Edit user information and admin access.</p>
+                <p class="text-muted small mb-0">Edit user information, admin access, or remove accounts.</p>
             </div>
         </div>
     </div>
@@ -104,13 +104,23 @@
                         </td>
 
                         <td class="text-end">
-                            <button type="button"
-                                    class="btn btn-sm btn-light border"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#editUserModal{{ $user->id }}">
-                                <i class="bi bi-pencil me-1"></i>
-                                Edit
-                            </button>
+                            <div class="btn-group btn-group-sm">
+                                <button type="button"
+                                        class="btn btn-light border"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#editUserModal{{ $user->id }}">
+                                    <i class="bi bi-pencil me-1"></i>
+                                    Edit
+                                </button>
+
+                                <button type="button"
+                                        class="btn btn-outline-danger"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#deleteUserModal{{ $user->id }}">
+                                    <i class="bi bi-trash3 me-1"></i>
+                                    Delete
+                                </button>
+                            </div>
                         </td>
                     </tr>
 
@@ -214,6 +224,80 @@
                                         </button>
                                     </div>
                                 </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Delete User Modal --}}
+                    <div class="modal fade" id="deleteUserModal{{ $user->id }}" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content border-0 rounded-4 shadow">
+                                <div class="modal-header border-0 pb-0">
+                                    <div>
+                                        <h5 class="modal-title fw-bold">
+                                            <i class="bi bi-trash3 text-danger me-1"></i>
+                                            Delete User?
+                                        </h5>
+                                        <p class="text-muted small mb-0">
+                                            This action cannot be undone.
+                                        </p>
+                                    </div>
+
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+
+                                <div class="modal-body">
+                                    <div class="rounded-4 p-3 bg-light">
+                                        <div class="d-flex align-items-center gap-2">
+                                            @if($user->avatar)
+                                                <img src="{{ secure_asset('uploads/avatars/' . $user->avatar) }}"
+                                                     class="rounded-circle"
+                                                     width="42"
+                                                     height="42"
+                                                     style="object-fit:cover;">
+                                            @else
+                                                <div class="rounded-circle d-flex align-items-center justify-content-center"
+                                                     style="width:42px;height:42px;background:#eef3ff;color:#2563eb;font-weight:700;">
+                                                    {{ strtoupper(substr($user->name, 0, 1)) }}
+                                                </div>
+                                            @endif
+
+                                            <div>
+                                                <div class="fw-bold">{{ $user->name }}</div>
+                                                <div class="text-muted small">{{ $user->email }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    @if($user->id === auth()->id())
+                                        <div class="alert alert-warning mt-3 mb-0">
+                                            <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                                            You cannot delete your own account.
+                                        </div>
+                                    @else
+                                        <p class="text-muted small mt-3 mb-0">
+                                            Deleting this account will permanently remove this user from the system.
+                                        </p>
+                                    @endif
+                                </div>
+
+                                <div class="modal-footer border-0 pt-0">
+                                    <button type="button" class="btn btn-light border" data-bs-dismiss="modal">
+                                        Cancel
+                                    </button>
+
+                                    @if($user->id !== auth()->id())
+                                        <form method="POST" action="{{ secure_url(route('admin.users.delete', $user, false)) }}">
+                                            @csrf
+                                            @method('DELETE')
+
+                                            <button type="submit" class="btn btn-danger">
+                                                <i class="bi bi-trash3 me-1"></i>
+                                                Delete User
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
                             </div>
                         </div>
                     </div>

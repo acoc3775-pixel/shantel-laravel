@@ -88,4 +88,22 @@ class AdminController extends Controller
             ->route('admin.users')
             ->with('success', 'User account updated successfully.');
     }
+    public function deleteUser(User $user)
+{
+    if ($user->id === auth()->id()) {
+        return redirect()
+            ->route('admin.users')
+            ->with('error', 'You cannot delete your own account.');
+    }
+
+    if ($user->avatar && file_exists(public_path('uploads/avatars/' . $user->avatar))) {
+        unlink(public_path('uploads/avatars/' . $user->avatar));
+    }
+
+    $user->delete();
+
+    return redirect()
+        ->route('admin.users')
+        ->with('success', 'User account deleted successfully.');
+}
 }
