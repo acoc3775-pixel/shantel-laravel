@@ -9,3 +9,133 @@
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
+/* Admin Dashboard Stats Row */
+.stats-row {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: #fff;
+    padding: 1rem;
+    border-radius: 8px;
+    flex: 1 1 150px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.stat-icon {
+    font-size: 1.5rem;
+    color: #ffc107; /* customize per stat */
+}
+
+.stat-number {
+    font-weight: 700;
+    font-size: 1.5rem;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: #555;
+}
+
+/* Pending, Confirmed, Cancelled */
+.stat-pending .stat-icon { color: #fd7e14; }
+.stat-confirmed .stat-icon { color: #28a745; }
+.stat-cancelled .stat-icon { color: #dc3545; }
+
+.admin-grid {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: 2rem;
+}
+
+.card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    flex: 1 1 48%;
+}
+
+.card-header {
+    font-weight: 600;
+    font-size: 1rem;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.card-body {
+    padding: 1rem;
+}
+
+.mini-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.mini-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.user-inline {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.avatar-placeholder-sm {
+    width: 32px;
+    height: 32px;
+    background: #6c757d;
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.875rem;
+}
+.res-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.res-table th, .res-table td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 5px;
+    font-size: 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.badge-confirmed { background: #28a745; color: #fff; }
+.badge-pending { background: #ffc107; color: #212529; }
+.empty-state {
+    text-align: center;
+    padding: 2rem;
+    color: #6c757d;
+}
+
+.empty-icon i {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}

@@ -1,23 +1,40 @@
 <?php
 
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ReservationController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-| All routes for the Reservation List application.
-| We use Route::resource() to automatically generate the 7 RESTful routes
-| (index, create, store, show, edit, update, destroy).
-*/
+Route::get('/', function () {
+    return auth()->check()
+        ? redirect()->route('reservations.index')
+        : redirect()->route('login');
+});
 
-// Redirect root to reservations list
-Route::get('/', fn () => redirect()->route('reservations.index'));
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 
-// Resourceful CRUD routes for reservations
-Route::resource('reservations', ReservationController::class);
+    Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+    Route::post('/register', [AuthController::class, 'register'])->name('register.post');
+});
 
-// Extra route for quick status update (PATCH /reservations/{id}/status)
-Route::patch('reservations/{reservation}/status', [ReservationController::class, 'updateStatus'])
-     ->name('reservations.updateStatus');
+Route::post('/logout', [AuthController::class, 'logout'])
+    ->middleware('auth')
+    ->name('logout');
+
+Route::middleware('auth')->group(function () {
+    Route::resource('reservations', ReservationController::class);
+
+    Route::patch('reservations/{reservation}/status', [ReservationController::class, 'updateStatus'])
+        ->name('reservations.updateStatus');
+
+Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+});
+
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+    Route::get('/users', [AdminController::class, 'users'])->name('users');
+});
